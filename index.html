@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LaunchPad Productivity Dashboard</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col items-center py-12 px-4">
+
+    <!-- Dashboard Container -->
+    <div class="w-full max-w-lg bg-slate-800 border border-slate-700 shadow-2xl rounded-2xl p-6">
+        
+        <!-- Header Section -->
+        <header class="mb-8 text-center border-b border-slate-700 pb-6">
+            <div class="inline-block bg-blue-500/10 text-blue-400 font-semibold text-xs px-3 py-1 rounded-full uppercase tracking-wider mb-2">
+                CI/CD Practice App
+            </div>
+            <h1 class="text-3xl font-extrabold text-white tracking-tight">🚀 LaunchPad</h1>
+            <p class="text-sm text-slate-400 mt-1">Productivity & Task Control Center</p>
+        </header>
+
+        <!-- Task Input Form -->
+        <form id="task-form" class="flex gap-2 mb-6">
+            <input 
+                type="text" 
+                id="task-input" 
+                placeholder="Launch a new task..." 
+                required
+                class="flex-1 px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+            >
+            <button 
+                type="submit" 
+                class="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-5 py-3 rounded-xl transition shadow-lg shadow-blue-600/20 active:scale-95"
+            >
+                Add Task
+            </button>
+        </form>
+
+        <!-- Task List -->
+        <ul id="task-list" class="space-y-3 mb-6">
+            <!-- Dynamic tasks rendered here -->
+        </ul>
+
+        <!-- Dashboard Footer Stats -->
+        <div class="border-t border-slate-700 pt-4 flex justify-between text-xs font-medium text-slate-400">
+            <span>Total Tasks: <strong id="total-count" class="text-white">0</strong></span>
+            <span>Completed: <strong id="completed-count" class="text-blue-400">0</strong></span>
+            <span>Status: <span class="inline-flex items-center gap-1 text-emerald-400"><span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Active</span></span>
+        </div>
+    </div>
+
+    <!-- JavaScript Logic -->
+    <script>
+        const taskForm = document.getElementById('task-form');
+        const taskInput = document.getElementById('task-input');
+        const taskList = document.getElementById('task-list');
+        const totalCount = document.getElementById('total-count');
+        const completedCount = document.getElementById('completed-count');
+
+        let tasks = JSON.parse(localStorage.getItem('launchpad_tasks')) || [
+            { text: 'Set up Git & GitHub repository', completed: true },
+            { text: 'Configure GitHub Actions workflow', completed: true },
+            { text: 'Deploy LaunchPad via CI/CD pipeline', completed: false }
+        ];
+
+        function renderTasks() {
+            taskList.innerHTML = '';
+            let completed = 0;
+
+            tasks.forEach((task, index) => {
+                if (task.completed) completed++;
+
+                const li = document.createElement('li');
+                li.className = `flex items-center justify-between p-4 rounded-xl border transition ${
+                    task.completed 
+                    ? 'bg-slate-900/50 border-slate-800 text-slate-500 line-through' 
+                    : 'bg-slate-900 border-slate-700 text-slate-200 hover:border-slate-600'
+                }`;
+                
+                li.innerHTML = `
+                    <span onclick="toggleTask(${index})" class="cursor-pointer flex-1 font-medium select-none">
+                        ${task.completed ? '✅ ' : '⏳ '} ${task.text}
+                    </span>
+                    <button onclick="deleteTask(${index})" class="text-slate-500 hover:text-red-400 text-xs px-2 py-1 rounded-lg hover:bg-red-500/10 transition">
+                        Remove
+                    </button>
+                `;
+                taskList.appendChild(li);
+            });
+
+            totalCount.textContent = tasks.length;
+            completedCount.textContent = completed;
+            localStorage.setItem('launchpad_tasks', JSON.stringify(tasks));
+        }
+
+        taskForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const text = taskInput.value.trim();
+            if (text) {
+                tasks.push({ text, completed: false });
+                taskInput.value = '';
+                renderTasks();
+            }
+        });
+
+        window.toggleTask = function(index) {
+            tasks[index].completed = !tasks[index].completed;
+            renderTasks();
+        }
+
+        window.deleteTask = function(index) {
+            tasks.splice(index, 1);
+            renderTasks();
+        }
+
+        renderTasks();
+    </script>
+</body>
+</html>
